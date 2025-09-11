@@ -18,6 +18,33 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+// Register authentication services and specify JwtBearer as the authentication scheme
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    // Configure the JwtBearer handler that will validate incoming Authorization
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            // Ensure the token was issued by the expected issuer
+            ValidateIssuer = true,
+            // Ensure the token is intended for the expected audience
+            ValidateAudience = true,
+            // Ensure the token has not expired
+            ValidateLifetime = true,
+            // Ensure the signing key is valid and signature matches
+            ValidateIssuerSigningKey = true,
+            // Value used to validate the "iss" claim (must match the issuer used when creating the token)
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            // Value used to validate the "aud" claim (must match the audience used when creating the token)
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            // The key used to validate the token's signature — must be the same secret used to sign tokens
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+// Register authorization (enables policy and role checks)
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,6 +53,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+app.UseAuthentication();
 
 app.UseHttpsRedirection();
 
