@@ -52,7 +52,7 @@ namespace EmployeePortalBackend.Controllers
                 {
                     Id = c.Id,
                     Content = c.Content,
-                    CreatedAt = c.CreatedAt,
+                    CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(c.CreatedAt, localTimeZone),
                     UserName = c.Author.UserName,
                     UserRole = c.Author.Role.Name
                 }).ToList(),
