@@ -10,6 +10,8 @@
         public string AuthorRole { get; set; }
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
+
+        public List<LikeResponseDto> Likes { get; set; }
         public List<CommentResponseDto> Comments { get; set; }
         
     }

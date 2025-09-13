@@ -20,7 +20,7 @@ namespace EmployeePortalBackend.Auth
             _config = config;
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<ActionResult> LogIn([FromBody] LogInRequestDto logInRequest)
         {
             // Find the use by UserName and Password

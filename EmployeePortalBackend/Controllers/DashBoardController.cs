@@ -27,25 +27,5 @@ namespace EmployeePortalBackend.Controllers
             };
             return Ok(dashboard);
         }
-
-        
-        [HttpGet("trending")]
-        public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetTrendingPosts()
-        {
-            var trending = await _context.Posts
-                .Include(p => p.Likes) // EAGER load Likes
-                .Where(p => p.Likes.Count(l => l.IsLike) > 5) // Filter Posts only have more than 5 likes
-                .Select(p => new PostResponseDto // Create new PostResonseDtos
-                { 
-                    Id = p.Id,
-                    Title = p.Title,
-                    Content = p.Content,
-                    CreatedAt = p.CreatedAt,
-                    LikeCount = p.Likes.Count(l => l.IsLike) 
-                }) 
-                .ToListAsync();
-
-            return Ok(trending);
-        }
     }
 }

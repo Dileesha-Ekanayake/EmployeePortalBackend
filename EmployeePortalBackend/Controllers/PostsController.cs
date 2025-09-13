@@ -25,6 +25,7 @@ namespace EmployeePortalBackend.Controllers
                 .Include(p => p.Author)
                 .Include(p => p.Likes)
                 .Include(p => p.Comments)
+                .OrderByDescending(p => p.CreatedAt) // Latest posts first
                 .AsQueryable(); // LINQ (Language Integrated Query)
                                 // extension method that converts an object that implements IEnumerable<T> into an IQueryable<T>.
 
@@ -41,14 +42,22 @@ namespace EmployeePortalBackend.Controllers
                 Id = p.Id,
                 Title = p.Title,
                 Content = p.Content,
+                // Convert UTC to Local Time
                 CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(p.CreatedAt, localTimeZone),
-                Author = new UserResponseDto
+                Author = new UserResponseDto // Nested DTO for Author
                 {
                     Id = p.Author.Id,
                     UserName = p.Author.UserName
                 },
                 AuthorRole = p.Author.Role.Name,
-                Comments = p.Comments.Select(c => new CommentResponseDto
+                Likes = p.Likes.Select(l => new LikeResponseDto // Nested DTO for Likes
+                {
+                    Id = l.Id,
+                    UserId = l.UserId,
+                    PostId = l.PostId,
+                    IsLike = l.IsLike
+                }).ToList(),
+                Comments = p.Comments.Select(c => new CommentResponseDto // Nested DTO for Comments
                 {
                     Id = c.Id,
                     Content = c.Content,
@@ -63,7 +72,26 @@ namespace EmployeePortalBackend.Controllers
             return Ok(posts);
         }
 
-        
+        [HttpGet("Trending")]
+        public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetTrendingPosts()
+        {
+            var trending = await _context.Posts
+                .Include(p => p.Likes) // EAGER load Likes
+                .Where(p => p.Likes.Count(l => l.IsLike) > 5) // Filter Posts only have more than 5 likes
+                .Select(p => new PostResponseDto // Create new PostResonseDtos
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Content = p.Content,
+                    CreatedAt = p.CreatedAt,
+                    LikeCount = p.Likes.Count(l => l.IsLike)
+                })
+                .ToListAsync();
+
+            return Ok(trending);
+        }
+
+
         [HttpPost]
         public async Task<ActionResult<PostResponseDto>> CreatePost([FromBody] PostRequestDto postRequestDto)
         {
@@ -151,22 +179,37 @@ namespace EmployeePortalBackend.Controllers
         }
 
       
-        [HttpPost("{postId}/like/{userId}")]
-        public async Task<IActionResult> AddLike(int postId, int userId, [FromBody] bool isLike)
+        [HttpPost("likes")]
+        public async Task<IActionResult> AddLike([FromBody] LikeRequestDto likeRequestDto)
         {
-            var post = await _context.Posts.FindAsync(postId);
+            var post = await _context.Posts
+                .Include(p => p.Likes)
+                .FirstOrDefaultAsync(p => p.Id == likeRequestDto.PostId);
 
             if (post == null)
                 return NotFound("Post Not Found");
 
-            var like = new Like
-            {
-                PostId = postId,
-                IsLike = isLike,
-                UserId = userId
-            };
+            // Check if the user has already liked/disliked the post
+            var existingLike = post.Likes
+                .FirstOrDefault(l => l.UserId == likeRequestDto.UserId);
 
-            _context.Likes.Add(like);
+            if (existingLike != null)
+            {
+                // User has already liked/disliked the post, update the existing record
+                existingLike.IsLike = likeRequestDto.isLike;
+            }
+            else
+            {
+                // User has not liked/disliked the post yet, create a new record
+                var like = new Like
+                {
+                    PostId = likeRequestDto.PostId,
+                    UserId = likeRequestDto.UserId,
+                    IsLike = likeRequestDto.isLike
+                };
+                _context.Likes.Add(like);
+            }
+
             await _context.SaveChangesAsync();
             return Ok();
         }
