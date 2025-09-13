@@ -4,6 +4,7 @@ namespace EmployeePortalBackend.Dto
 {
     public class PostRequestDto
     {
+        public int Id { get; set; }
 
         [Required]
         public string Title { get; set; }

@@ -20,7 +20,6 @@ namespace EmployeePortalBackend.Auth
             _config = config;
         }
 
-        // POST: api/auth/login
         [HttpPost("login")]
         public async Task<ActionResult> LogIn([FromBody] LogInRequestDto logInRequest)
         {
@@ -44,11 +43,11 @@ namespace EmployeePortalBackend.Auth
             // Build the claims that will be embedded into the JWT payload
             var claims = new[]
             {
-                // Subject identifier claim
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                // Username claim
+                // object identifier
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Insted of "ClaimTypes.NameIdentifier" can use simple values likes -> uid, name, role
+                // Username
                 new Claim(ClaimTypes.Name, user.UserName),
-                // Role claim — used by ASP.NET Core [Authorize(Roles = "...")] checks
+                // Role claim — used by ASP.NET Core [Authorize(Roles = "...")] checks Role based authorization
                 new Claim(ClaimTypes.Role, user.Role.Name)
             };
 

@@ -21,7 +21,7 @@ namespace EmployeePortalBackend.Controllers
         // Task<T> - Asynchronous Operation
         // ActionResult<T> - ASP.NET Core Web API Return Type
         // IEnumerable<UserDto> - Collection Interface
-        // GET: api/users
+        
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
@@ -39,7 +39,7 @@ namespace EmployeePortalBackend.Controllers
             return Ok(users); // Retrun UserDtos
         }
 
-        // POST: api/users (Create Users)
+        
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<UserResponseDto>> CreateUser([FromBody] UserRequestDto userRequestDto)

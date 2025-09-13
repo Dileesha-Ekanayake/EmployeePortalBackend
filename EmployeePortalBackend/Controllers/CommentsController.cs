@@ -18,7 +18,7 @@ namespace EmployeePortalBackend.Controllers
             _context = context;
         }
 
-        // GET: api/comments?postId=1 (Get comments for a post)
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CommentResponseDto>>> GetComments()
         {
@@ -41,7 +41,7 @@ namespace EmployeePortalBackend.Controllers
             return Ok(comments);
         }
 
-        // POST: api/comments (Add comment)
+        
         [HttpPost]
         public async Task<ActionResult<IEnumerable<CommentResponseDto>>> AddComment([FromBody] CommentRequestDto commentRequestDto)
         {

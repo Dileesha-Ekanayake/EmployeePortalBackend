@@ -17,7 +17,7 @@ namespace EmployeePortalBackend.Controllers
             _context = context;
         }
 
-        // GET: api/posts (List all with author, timestamp, likes/dislikes)
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetPosts(string? author = null)
         {
@@ -63,7 +63,7 @@ namespace EmployeePortalBackend.Controllers
             return Ok(posts);
         }
 
-        // POST: api/posts (Create post)
+        
         [HttpPost]
         public async Task<ActionResult<PostResponseDto>> CreatePost([FromBody] PostRequestDto postRequestDto)
         {
@@ -92,9 +92,9 @@ namespace EmployeePortalBackend.Controllers
             }
         }
 
-        // PUT: api/posts/{id} (Update own post)
+        
         [HttpPut]
-        public async Task<ActionResult<PostResponseDto>> UpdatePost(int id, [FromBody] PostRequestDto updatePostRequestDto)
+        public async Task<ActionResult<PostResponseDto>> UpdatePost([FromBody] PostRequestDto updatePostRequestDto)
         {
 
             try
@@ -104,7 +104,7 @@ namespace EmployeePortalBackend.Controllers
                     return BadRequest(ModelState);
 
                 // Find the Existing Post by Post Id
-                var existingPost = await _context.Posts.FindAsync(id);
+                var existingPost = await _context.Posts.FindAsync(updatePostRequestDto.Id);
 
                 if (existingPost == null)
                     return NotFound("Post not Found");
@@ -122,15 +122,27 @@ namespace EmployeePortalBackend.Controllers
             }
         }
 
-        // DELETE: api/posts/{id} (Delete own post)
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePost(int id)
         {
             // Find the Existing Post by Post Id
-            var post = await _context.Posts.FindAsync(id);
+            var post = await _context.Posts
+                .Include(p => p.Comments)
+                .Include(p => p.Likes)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (post == null) 
                 return NotFound("Post Not Found");
+
+            // There are two relationships with post
+            // 1. Post -> Comment
+            // 2. Post -> Like
+            // When deleting a Post need to set Casecade or remove manually them
+
+            // Remove manually
+            _context.Comments.RemoveRange(post.Comments);
+            _context.Likes.RemoveRange(post.Likes);
 
             // Remove the post
             _context.Posts.Remove(post);
@@ -138,7 +150,7 @@ namespace EmployeePortalBackend.Controllers
             return NoContent();
         }
 
-        // POST: api/posts/{postId}/like (Like/Dislike)
+      
         [HttpPost("{postId}/like/{userId}")]
         public async Task<IActionResult> AddLike(int postId, int userId, [FromBody] bool isLike)
         {

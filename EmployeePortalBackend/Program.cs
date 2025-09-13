@@ -47,12 +47,14 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
+    // Define a CORS policy to allow requests from the Angular frontend
     options.AddPolicy("AllowAngularClient",
         policy =>
         {
+            // Adjust the URL to match the Angular app's URL and port
             policy.WithOrigins("http://localhost:4200")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyHeader() // Allow any HTTP headers
+                  .AllowAnyMethod(); // Allow any HTTP methods (GET, POST, etc.)
         });
 });
 
@@ -65,6 +67,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Use CORS policy
 app.UseCors("AllowAngularClient");
 
 app.UseHttpsRedirection();

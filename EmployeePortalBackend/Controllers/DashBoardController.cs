@@ -15,7 +15,7 @@ namespace EmployeePortalBackend.Controllers
             _context = context;
         }
 
-        // GET: api/dashboard/
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DashboardDto>>> GetMetrics()
         {
@@ -28,7 +28,7 @@ namespace EmployeePortalBackend.Controllers
             return Ok(dashboard);
         }
 
-        // GET: api/dashboard/trending (Posts with >5 likes)
+        
         [HttpGet("trending")]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetTrendingPosts()
         {
