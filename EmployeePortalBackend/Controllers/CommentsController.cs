@@ -22,6 +22,9 @@ namespace EmployeePortalBackend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CommentResponseDto>>> GetComments(int postId)
         {
+
+            // Convert UTC to Local Time (Sri Lanka Standard Time)
+            TimeZoneInfo localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Sri Lanka Standard Time");
             var comments = await _context.Comments
                 .Where(c => c.PostId == postId) // Filter by Post Id
                 .Include(c => c.Author) // EAGER load the Author (User)
@@ -29,8 +32,8 @@ namespace EmployeePortalBackend.Controllers
                     {
                         Id = c.Id,
                         Content = c.Content,
-                        CreatedAt = c.CreatedAt,
-                        UserName = c.Author.UserName,
+                        CreatedAt = TimeZoneInfo.ConvertTimeToUtc(c.CreatedAt, localTimeZone),
+                    UserName = c.Author.UserName,
                         UserRole = c.Author.Role.Name
                     })
                 .ToListAsync();

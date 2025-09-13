@@ -24,6 +24,7 @@ namespace EmployeePortalBackend.Controllers
             var query = _context.Posts
                 .Include(p => p.Author)
                 .Include(p => p.Likes)
+                .Include(p => p.Comments)
                 .AsQueryable(); // LINQ (Language Integrated Query)
                                 // extension method that converts an object that implements IEnumerable<T> into an IQueryable<T>.
 
@@ -32,14 +33,29 @@ namespace EmployeePortalBackend.Controllers
             {
                 query = query.Where(p => p.Author.UserName.Contains(author));
             }
+            // Convert UTC to Local Time (Sri Lanka Standard Time)
+            TimeZoneInfo localTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Sri Lanka Standard Time");
 
             var posts = await query.Select(p => new PostResponseDto
             {
                 Id = p.Id,
                 Title = p.Title,
                 Content = p.Content,
-                CreatedAt = p.CreatedAt,
-                AuthorName = p.Author.UserName,
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(p.CreatedAt, localTimeZone),
+                Author = new UserResponseDto
+                {
+                    Id = p.Author.Id,
+                    UserName = p.Author.UserName
+                },
+                AuthorRole = p.Author.Role.Name,
+                Comments = p.Comments.Select(c => new CommentResponseDto
+                {
+                    Id = c.Id,
+                    Content = c.Content,
+                    CreatedAt = c.CreatedAt,
+                    UserName = c.Author.UserName,
+                    UserRole = c.Author.Role.Name
+                }).ToList(),
                 LikeCount = p.Likes.Count(l => l.IsLike),
                 DislikeCount = p.Likes.Count(l => !l.IsLike)
             }).ToListAsync();
