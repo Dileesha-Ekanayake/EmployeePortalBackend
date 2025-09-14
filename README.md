@@ -79,7 +79,7 @@ dotnet build
 ### 5. Run the Application
 
 ```bash
-dotnet run
+dotnet run --launch-profile "https"
 ```
 
 The API will be available at `https://localhost:5050 and http://localhost:5055`
